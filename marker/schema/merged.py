@@ -26,3 +26,5 @@ class FullyMergedBlock(BaseModel):
     text: str
     block_type: str
     page_end: bool
+    id: str
+    bbox: List[float]

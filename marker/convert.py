@@ -47,6 +47,7 @@ def convert_single_pdf(
         batch_multiplier: int = 1,
         ocr_all_pages: bool = False
 ) -> Tuple[str, Dict[str, Image.Image], Dict]:
+    print("running jenny's convert_single_pdf")
     ocr_all_pages = ocr_all_pages or settings.OCR_ALL_PAGES
 
     if metadata:
@@ -169,4 +170,4 @@ def convert_single_pdf(
 
     doc_images = images_to_dict(pages)
 
-    return full_text, doc_images, out_meta
+    return full_text, doc_images, out_meta, pages, text_blocks
