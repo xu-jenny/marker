@@ -179,21 +179,19 @@ def merge_lines(blocks: List[List[MergedBlock]], max_block_gap=15):
         y1 = None # last y1 val of the merged blocks
         merged_block_len = 0
         for block_num, block in enumerate(page):
-            print(f"processing block {block_num} of page {idx}. bbox {block.bbox}. merged_block_len: {merged_block_len}")
-            if x0 is None:
-                x0 = block.bbox[0]
-                y0 = block.bbox[1]
-                x1 = block.bbox[2]
-            y1 = block.bbox[3]
-            x0 = min(x0, block.bbox[0])
-            x1 = max(x1, block.bbox[2])
+            # print(f"processing block {block_num} of page {idx}. bbox {block.bbox}. merged_block_len: {merged_block_len}")
             block_type = block.block_type
             if (block_type != prev_type and prev_type) or (
                 block.heading_level != prev_heading_level and prev_heading_level
             ):
-                print(
-                    f"\t appending {len(text_blocks)} block {block_type} of len {len(block_text)} for page {idx} block {block_num}. block.bbox {block.bbox} bbox: {[x0, y0, x1, y1]}"
-                )
+                # print(
+                #     f"\t appending {len(text_blocks)} block {block_type} of len {len(block_text)} for page {idx} block {block_num}. block.bbox {block.bbox} bbox: {[x0, y0, x1, y1]}"
+                # )
+                if x0 is None:
+                    x0 = block.bbox[0]
+                    y0 = block.bbox[1]
+                    x1 = block.bbox[2]
+                    y1 = block.bbox[3]
                 text_blocks.append(
                     FullyMergedBlock(
                         text=block_surround(block_text, prev_type, prev_heading_level),
@@ -208,6 +206,14 @@ def merge_lines(blocks: List[List[MergedBlock]], max_block_gap=15):
                 y0 = None
                 x1 = None
                 y1 = None
+            
+            if x0 is None:
+                x0 = block.bbox[0]
+                y0 = block.bbox[1]
+                x1 = block.bbox[2]
+            y1 = block.bbox[3]
+            x0 = min(x0, block.bbox[0])
+            x1 = max(x1, block.bbox[2])
 
             prev_type = block_type
             prev_heading_level = block.heading_level
@@ -240,23 +246,29 @@ def merge_lines(blocks: List[List[MergedBlock]], max_block_gap=15):
                     block_text = line.text
             merged_block_len += 1
             
-            # if len(block_text) > 3000 and i < (len(page) * 1 / 2):
-            #     print(
-            #         f"""\t appending block {block.block_type} bcuz block text length {len(block_text)} exceed 3000 for page {idx} block {block_num}. block_start {block_start} block_end {block_end} bbox {getBBox(block_start, block_end)}"""
-            #     )
-            #     if block_start is None:
-            #         block_start = [block.bbox[0], block.bbox[1]]
-            #     text_blocks.append(
-            #         FullyMergedBlock(
-            #             text=block_surround(block_text, prev_type, prev_heading_level),
-            #             block_type=prev_type,
-            #             page_end=False,
-            #             bbox=getBBox(block_start, block_end),
-            #             id=f"{idx+1}|-{block_num}",
-            #         )
-            #     )
-            #     block_text = ""
-            #     block_start = None
+            if len(block_text) > 1000 and block_type.lower() != "table":
+                # print(
+                #     f"""\t appending block {block.block_type} bcuz block text length {len(block_text)} exceed 1500 for page {idx} block {block_num}. bbox {[x0, y0, x1, y1]}"""
+                # )
+                if x0 is None and x1 is None:
+                    x0 = block.bbox[0]
+                    y0 = block.bbox[1]
+                    x1 = block.bbox[2]
+                    y1 = block.bbox[3]
+                text_blocks.append(
+                    FullyMergedBlock(
+                        text=block_surround(block_text, prev_type, prev_heading_level),
+                        block_type=prev_type,
+                        page_end=False,
+                        bbox=[x0, y0, x1, y1],
+                        id=f"{idx+1}|-{block_num}",
+                    )
+                )
+                block_text = ""
+                x0 = None
+                y0 = None
+                x1 = None
+                y1 = None
             
 
         # Force blocks to end at page boundaries
@@ -266,7 +278,7 @@ def merge_lines(blocks: List[List[MergedBlock]], max_block_gap=15):
                 y0 = block.bbox[1]
                 x1 = block.bbox[2]
                 y1 = block.bbox[3]
-            print(f"\tappending {len(text_blocks)} end of page block for page {idx}. len(block_text): {len(block_text)} len(page): {len(page)}. block.bbox {block.bbox} bbox {[x0, y0, x1, y1]}")
+            # print(f"\tappending {len(text_blocks)} end of page block for page {idx}. len(block_text): {len(block_text)} len(page): {len(page)}. block.bbox {block.bbox} bbox {[x0, y0, x1, y1]}")
             text_blocks.append(
                 FullyMergedBlock(
                     text=block_surround(block_text, prev_type, prev_heading_level),
@@ -285,7 +297,7 @@ def merge_lines(blocks: List[List[MergedBlock]], max_block_gap=15):
             y1 = None
 
     # Append the final block
-    print(f"\t appending final block {len(text_blocks)}. block.bbox {block.bbox} bbox {[x0, y0, x1, y1]}")
+    # print(f"\t appending final block {len(text_blocks)}. block.bbox {block.bbox} bbox {[x0, y0, x1, y1]}")
     if x0 is None and x1 is None:
         x0 = block.bbox[0]
         y0 = block.bbox[1]
