@@ -283,7 +283,6 @@ def merge_lines(blocks: List[List[MergedBlock]], max_block_gap=15):
                 FullyMergedBlock(
                     text=block_surround(block_text, prev_type, prev_heading_level),
                     block_type=prev_type if prev_type else settings.DEFAULT_BLOCK_TYPE,
-                    block_type=prev_type,
                     page_end=True,
                     bbox=[x0, y0, x1, y1],
                     id=f"{idx+1}|-{len(page)}",
